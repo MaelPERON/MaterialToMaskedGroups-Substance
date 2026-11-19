@@ -1,4 +1,7 @@
 import colorsys
+import sys
+from pathlib import Path
+
 try:
     from PySide6 import QtGui, QtWidgets
 except ImportError:
