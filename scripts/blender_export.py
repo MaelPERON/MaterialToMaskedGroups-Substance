@@ -1,6 +1,6 @@
 # coding: utf-8
 # Author: Mael PERON (https://github.com/MaelPERON)
-# Source: https://github.com/MaelPERON/substance_materials_to_masked_groups
+# Source: https://github.com/MaelPERON/MaterialToMaskedGroups-Substance
 
 """Export the selected meshes and their materials to a JSON file for use in Substance Painter."""
 
