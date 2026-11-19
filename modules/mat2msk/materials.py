@@ -1,4 +1,6 @@
+import hashlib
 import json
+import random
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
@@ -46,3 +48,26 @@ def load_materials(path: str | Path) -> list[MaterialEntry]:
             )
         )
     return entries
+
+
+def hue_for_material(
+    material_name: str,
+    index: int,
+    count: int,
+    mode: str,
+) -> float:
+    """Return a stable random hue, or the optional index/count hue.
+
+    Args:
+        material_name: The name of the material.
+        index: The index of the material in the list.
+        count: The total number of materials.
+        mode: The hue mode, either "random" or "index".
+
+    Returns:
+        A float representing the hue in the range [0.0, 1.0].
+    """
+    if mode == "index":
+        return index / count
+    digest = hashlib.sha256(material_name.encode("utf-8")).digest()
+    return random.Random(digest).random()
