@@ -1,3 +1,4 @@
+import colorsys
 try:
     from PySide6 import QtGui, QtWidgets
 except ImportError:
@@ -11,11 +12,14 @@ import substance_painter.textureset
 import substance_painter.ui
 
 PLUGIN_NAME = "Materials to Masked Groups"
+DEFAULT_PREFIX = "MAT_"
 _plugin_widgets: list[QtWidgets.QWidget] = []
 
 _MODULES = Path(__file__).resolve().parents[1] / "modules"
 if str(_MODULES) not in sys.path:
     sys.path.insert(0, str(_MODULES))
+
+from mat2msk.materials import MaterialEntry, hue_for_material, load_materials  # noqa: E402, E501
 
 
 def _show_message(
@@ -64,6 +68,41 @@ def _existing_groups(stack: object, names: set[str]) -> list[object]:
         for node in sp.layerstack.get_root_layer_nodes(stack)
         if node.get_name() in names
     ]
+
+
+def _make_group(
+    stack: object,
+    entry: MaterialEntry,
+    hue: float,
+    prefix: str,
+    available_meshes: set[str],
+) -> object:
+    position = sp.layerstack.InsertPosition.from_textureset_stack(stack)
+    group = sp.layerstack.insert_group(position)
+    group.set_name(f"{prefix}{entry.name}")
+
+    selected_meshes = [
+        name for name in entry.mesh_names if name in available_meshes
+    ]
+    group.set_geometry_mask(
+        sp.layerstack.GeometryMaskMeshParams(
+            inclusion_list=True,
+            meshes=selected_meshes,
+        )
+    )
+
+    fill = sp.layerstack.insert_fill(
+        sp.layerstack.InsertPosition.inside_node(
+            group, sp.layerstack.NodeStack.Substack
+        )
+    )
+    fill.set_name(entry.name)
+    red, green, blue = colorsys.hsv_to_rgb(hue, 0.8, 0.8)
+    fill.set_source(
+        sp.layerstack.ChannelType.BaseColor,
+        sp.colormanagement.Color(red, green, blue),
+    )
+    return group
 
 def start_plugin() -> None:
     menu = QtWidgets.QMenu("Mat2Msk")
