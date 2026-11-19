@@ -23,6 +23,40 @@ def _show_message(
 ) -> None:
     QtWidgets.QMessageBox(icon, title, message).exec_()
 
+
+def _choose_import_options() -> tuple[str, str, str] | None:
+    file_path, _ = QtWidgets.QFileDialog.getOpenFileName(
+        None, "Import Materials JSON", "", "JSON files (*.json)"
+    )
+    if not file_path:
+        return None
+
+    dialog = QtWidgets.QDialog()
+    dialog.setWindowTitle("Import Materials as Groups")
+    form = QtWidgets.QFormLayout(dialog)
+    prefix = QtWidgets.QLineEdit(DEFAULT_PREFIX)
+    mode = QtWidgets.QComboBox()
+    mode.addItem("Stable random hues", "random")
+    mode.addItem("Index / material count", "index")
+    form.addRow("Group prefix:", prefix)
+    form.addRow("Hue mode:", mode)
+    buttons = QtWidgets.QDialogButtonBox(
+        QtWidgets.QDialogButtonBox.Ok | QtWidgets.QDialogButtonBox.Cancel
+    )
+    buttons.accepted.connect(dialog.accept)
+    buttons.rejected.connect(dialog.reject)
+    form.addRow(buttons)
+    if dialog.exec_() != QtWidgets.QDialog.Accepted:
+        return None
+    if not prefix.text().strip():
+        _show_message(
+            "Invalid prefix",
+            "The group prefix cannot be empty.",
+            QtWidgets.QMessageBox.Warning,
+        )
+        return None
+    return file_path, prefix.text(), mode.currentData()
+
 def start_plugin() -> None:
     menu = QtWidgets.QMenu("Mat2Msk")
     action = QtGui.QAction(
