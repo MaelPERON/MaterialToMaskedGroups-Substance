@@ -107,10 +107,77 @@ def _make_group(
     )
     return group
 
+
+def import_materials() -> None:
+    """Prompt for JSON and create the requested groups in the active stack."""
+    if not sp.project.is_open():
+        _show_message(
+            "Materials to Masked Groups",
+            "Open a project first.",
+            QtWidgets.QMessageBox.Warning,
+        )
+        return
+
+    options = _choose_import_options()
+    if options is None:
+        return
+    file_path, prefix, hue_mode = options
+
+    try:
+        entries = load_materials(file_path)
+        stack = sp.textureset.get_active_stack()
+        available_meshes = set(stack.material().all_mesh_names())
+        group_names = {f"{prefix}{entry.name}" for entry in entries}
+        existing = _existing_groups(stack, group_names)
+        if existing:
+            answer = QtWidgets.QMessageBox.question(
+                None,
+                "Replace existing groups?",
+                "Matching groups already exist. Replace them?",
+                QtWidgets.QMessageBox.Yes | QtWidgets.QMessageBox.No,
+            )
+            if answer != QtWidgets.QMessageBox.Yes:
+                return
+    except (ValueError, RuntimeError, AttributeError) as error:
+        _show_message("Import failed", str(error),
+                      QtWidgets.QMessageBox.Critical)
+        return
+
+    for node in existing:
+        sp.layerstack.delete_node(node)
+
+    warnings: list[str] = []
+    count = len(entries)
+    for index, entry in enumerate(entries):
+        missing = [name for name in entry.mesh_names
+                   if name not in available_meshes]
+        if missing:
+            warnings.append(f"{entry.name}: missing {', '.join(missing)}")
+        try:
+            _make_group(
+                stack,
+                entry,
+                hue_for_material(entry.name, index, count, hue_mode),
+                prefix,
+                available_meshes,
+            )
+        except (RuntimeError, ValueError, AttributeError) as error:
+            _show_message("Import failed", str(error),
+                          QtWidgets.QMessageBox.Critical)
+            return
+
+    if warnings:
+        _show_message(
+            "Import completed with warnings",
+            "Some mesh names were not found:\n\n" + "\n".join(warnings),
+            QtWidgets.QMessageBox.Warning,
+        )
+
+
 def start_plugin() -> None:
     menu = QtWidgets.QMenu("Mat2Msk")
     action = QtGui.QAction(
-        "Import Materials as Groups", triggered=None
+        "Import Materials as Groups", triggered=import_materials
     )
     menu.addAction(action)
     sp.ui.add_menu(menu)
