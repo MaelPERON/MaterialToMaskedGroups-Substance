@@ -57,6 +57,14 @@ def _choose_import_options() -> tuple[str, str, str] | None:
         return None
     return file_path, prefix.text(), mode.currentData()
 
+
+def _existing_groups(stack: object, names: set[str]) -> list[object]:
+    return [
+        node
+        for node in sp.layerstack.get_root_layer_nodes(stack)
+        if node.get_name() in names
+    ]
+
 def start_plugin() -> None:
     menu = QtWidgets.QMenu("Mat2Msk")
     action = QtGui.QAction(
