@@ -17,6 +17,12 @@ _MODULES = Path(__file__).resolve().parents[1] / "modules"
 if str(_MODULES) not in sys.path:
     sys.path.insert(0, str(_MODULES))
 
+
+def _show_message(
+    title: str, message: str, icon: QtWidgets.QMessageBox.Icon
+) -> None:
+    QtWidgets.QMessageBox(icon, title, message).exec_()
+
 def start_plugin() -> None:
     menu = QtWidgets.QMenu("Mat2Msk")
     action = QtGui.QAction(
