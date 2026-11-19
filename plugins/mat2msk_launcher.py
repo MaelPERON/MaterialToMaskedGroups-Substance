@@ -3,9 +3,9 @@ import sys
 from pathlib import Path
 
 try:
-    from PySide6 import QtGui, QtWidgets
+    from PySide6 import QtGui, QtWidgets  # type: ignore
 except ImportError:
-    from PySide2 import QtGui, QtWidgets
+    from PySide2 import QtGui, QtWidgets  # type: ignore
 
 import substance_painter as sp
 import substance_painter.colormanagement

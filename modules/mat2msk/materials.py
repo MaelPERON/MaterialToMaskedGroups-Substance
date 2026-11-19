@@ -39,7 +39,8 @@ def load_materials(path: str | Path) -> list[MaterialEntry]:
             for mesh_name in mesh_names
         ):
             raise ValueError(
-                f"Material '{material_name}' must contain a list of mesh names."
+                f"Material '{material_name}' must "
+                "contain a list of mesh names."
             )
         entries.append(
             MaterialEntry(
